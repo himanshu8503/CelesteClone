@@ -1,3 +1,4 @@
+#include "schnitzel_lib.h"
 
 // ########################################################
 //                          Platform Globels
@@ -122,6 +123,11 @@ int main()
 	{
 		// Update
 		platform_update_window();
+		SM_TRACE("Test");
+		SM_WARN("Test");
+		SM_ERROR("test");
+
+		SM_ASSERT(false,"Assertion Hit!")
 	}
 
 	return 0;
