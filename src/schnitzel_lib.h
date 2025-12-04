@@ -236,7 +236,7 @@ void write_file(const char* filePath, char* buffer, int size)
     SM_ASSERT(filePath,"No filePath supplied!");
     SM_ASSERT(buffer,"No buffer supplied!");
 
-    auto file = fopen(filePath);
+    auto file = fopen(filePath,"wb");
     if(!file)
     {
         SM_ERROR("Failed To Open File: %s", filePath);
