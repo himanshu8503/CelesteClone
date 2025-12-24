@@ -1,6 +1,10 @@
 #pragma once
 #include "glcorearb.h"
 
+// To load png file
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 // ########################################################
 //                          OpenGL Function Pointers
 // ########################################################

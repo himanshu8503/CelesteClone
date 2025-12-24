@@ -3,6 +3,10 @@
 #include "gl_renderer.h"
 #include <iostream>
 
+// ########################################################
+//                          OpenGL Constant
+// ########################################################
+const char* TEXTURE_PATH = "assets/textures/Textue_atlas.png";
 
 // ########################################################
 //                          OpenGL Structs
@@ -11,6 +15,7 @@
 struct GLContext
 {
     GLuint ProgramID;
+    GLuint TextureID;
 };
 
 
@@ -158,6 +163,43 @@ bool gl_Init(BumpAllocator* transientStorage)
     GLuint VAO;
     glGenVertexArrays(1,&VAO);
     glBindVertexArray(VAO);
+
+    // texture loading using stbi
+    {
+        int width, height, channels;
+        char* data = (char*)stbi_load(TEXTURE_PATH,&width,&height,&channels,4);
+
+        if(!data)
+        {
+            SM_ASSERT(false,"Failed to load texture");
+            return false;
+        }
+
+        glGenTextures(1,&glContext.TextureID);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D,glContext.TextureID);
+
+        // set the texture wrapping/filtering options (on the currently bound texture object)
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+        // This setting only matters when using the GLSL texture() function
+        // When you use texelFetch() this setting has no effect,
+        // because texelFetch is designed for this purpose
+        // See: https://interactiveimmersive.io/blog/glsl/glsl-data-tricks/
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D,0,GL_SRGB8_ALPHA8,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,data);
+        stbi_image_free(data);
+
+    }
+
+    // sRGB output (even if input texture is non-sRGB -> don't rely on texture used)
+    // Your font is not using sRGB, for example (not that it matters there, because no actual color is sampled from it)
+    // But this could prevent some future bug when you start mixing different types of textures
+    // Of course, you still need to correctly set the image file source format when using glTexImage2D()    
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    glDisable(0x809D); // disable multisampling
 
     // gl depth testing
     glEnable(GL_DEPTH_TEST);
