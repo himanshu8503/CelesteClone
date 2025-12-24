@@ -22,6 +22,12 @@
 #define DEBUG_BREAK() __builtin_trap()
 #endif
 
+#define BIT(x)  1 << (x)
+#define KB(x)  ((unsigned long long)1024 * x)
+#define MB(x)  ((unsigned long long)1024 * KB(x))
+#define GB(X)  ((unsigned long long)1024 * MB(x))
+
+
 // ########################################################
 //                          Logging
 // ########################################################
@@ -89,6 +95,7 @@ void _log(char* prefix, char* msg, TextColor textcolor, Args... args)
     {                                 \
         SM_ERROR(msg,##__VA_ARGS__);  \
         DEBUG_BREAK();                \
+        SM_ERROR("Assertion HIT!")    \
     }                                 \
 }
 

@@ -1,6 +1,7 @@
-
+#pragma once
 #include "platform.h"
 #include "schnitzel_lib.h"
+#include "input.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -11,8 +12,10 @@
 //                          Windows globals
 // ########################################################
 static HWND window;
+static HDC dc;
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = nullptr;
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
+
 
 
 // ########################################################
@@ -27,6 +30,16 @@ LRESULT CALLBACK Windows_windows_callback(HWND window, UINT msg, WPARAM wParam, 
 		case WM_CLOSE:
 		{
 			running = false;
+			break;
+		}
+
+		case WM_SIZE:
+		{
+			RECT rect = {};
+			GetClientRect(window,&rect);
+			input.ScreenSizeX = rect.right - rect.left;
+			input.ScreenSizeY = rect.bottom - rect.top;
+
 			break;
 		}
 			
@@ -182,7 +195,7 @@ bool platfrom_create_window(int width, int height, char* title)
 			return false;
 		}
 
-		HDC dc = GetDC(window);
+		dc = GetDC(window);
 		if(!dc)
 		{
 			SM_ASSERT(false, "Failed to get DC");
@@ -191,9 +204,9 @@ bool platfrom_create_window(int width, int height, char* title)
 
 		const int pixelAttribs[] = 
 		{
-			WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-      		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-      		WGL_DOUBLE_BUFFER_ARB,  GL_TRUE,
+			WGL_DRAW_TO_WINDOW_ARB, 1,
+      		WGL_SUPPORT_OPENGL_ARB, 1,
+      		WGL_DOUBLE_BUFFER_ARB,  1,
       		WGL_SWAP_METHOD_ARB,    WGL_SWAP_COPY_ARB,
       		WGL_PIXEL_TYPE_ARB,     WGL_TYPE_RGBA_ARB,
       		WGL_ACCELERATION_ARB,   WGL_FULL_ACCELERATION_ARB,
@@ -277,4 +290,9 @@ void* platform_load_gl_function(char* functionName)
 	}
 
 	return (void*)proc;
+}
+
+void platform_Swap_Buffer()
+{
+	SwapBuffers(dc);
 }
