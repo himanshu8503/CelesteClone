@@ -2,6 +2,7 @@
 #include "schnitzel_lib.h"
 #include "gl_renderer.h"
 #include <iostream>
+#include "render_interface.h"
 
 // ########################################################
 //                          OpenGL Constant
@@ -16,6 +17,8 @@ struct GLContext
 {
     GLuint ProgramID;
     GLuint TextureID;
+    GLuint TransformSBOID;
+    GLuint ScreenSizeID;
 };
 
 
@@ -194,6 +197,19 @@ bool gl_Init(BumpAllocator* transientStorage)
 
     }
 
+    // Transform Storage Buffer 
+    {
+        glGenBuffers(1,&glContext.TransformSBOID);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,glContext.TransformSBOID);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Transform)* MAX_TRANSFORMS,renderData.transform,GL_DYNAMIC_DRAW);
+
+    }
+
+    // uniforms
+    {
+        glContext.ScreenSizeID = glGetUniformLocation(glContext.ProgramID,"screenSize");
+    }
+
     // sRGB output (even if input texture is non-sRGB -> don't rely on texture used)
     // Your font is not using sRGB, for example (not that it matters there, because no actual color is sampled from it)
     // But this could prevent some future bug when you start mixing different types of textures
@@ -218,7 +234,21 @@ void gl_render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0,0,input.ScreenSizeX,input.ScreenSizeY);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    // Copy screen size to GPU
+    Vec2 screenSize = {(float)input.ScreenSizeX,(float)input.ScreenSizeY};
+    glUniform2fv(glContext.ScreenSizeID,1,&screenSize.x);
+
+    // Opaque Objects
+    {
+        // Copy transforms to the GPU
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER,0,sizeof(Transform) * renderData.transformCount,renderData.transform);
+
+        glDrawArraysInstanced(GL_TRIANGLES,0,6,renderData.transformCount);
+
+        // Reset for the next frame
+        renderData.transformCount = 0;
+    }
+
 }
 
 

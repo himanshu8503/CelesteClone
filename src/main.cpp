@@ -2,6 +2,8 @@
 #include "schnitzel_lib.h"
 #include "input.h"
 
+#include "game.cpp"
+
 
 #define APIENTRY
 #define GL_GLEXT_PROTOTYPES
@@ -12,6 +14,7 @@
 #endif
 
 #include "gl_renderer.cpp"
+
 
 int main()
 {
@@ -31,7 +34,9 @@ int main()
 	{
 		// Update
 		platform_update_window();
+		update_game();
 		gl_render();
+		
 
 		platform_Swap_Buffer();
 	}
